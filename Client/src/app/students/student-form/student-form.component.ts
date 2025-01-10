@@ -28,7 +28,6 @@ export class StudentFormComponent implements OnInit, OnDestroy {
      ){
   }
 
-
   ngOnDestroy(): void {
     if(this.studentformSubscription){
       this.studentformSubscription.unsubscribe();
@@ -37,12 +36,11 @@ export class StudentFormComponent implements OnInit, OnDestroy {
     if(this.paramsSubscription){
       this.paramsSubscription.unsubscribe();
     }
-
   }
 
   onSubmit(){
-    if(!this.isEdit){
-    this.studentformSubscription= this.studentService.addStudent(this.form.value).subscribe({
+    if (!this.isEdit) {
+    this.studentformSubscription = this.studentService.addStudent(this.form.value).subscribe({
       next:(response)=>{
         console.log(response);
         this.toasterService.success("Student sucesfully added")
@@ -54,16 +52,16 @@ export class StudentFormComponent implements OnInit, OnDestroy {
 
       }
     })
-  }else{
-    this.studentService.editStudent(this.id,this.form.value).subscribe(
-      {next:value=>{
-        this.toasterService.success("Edited sucessfully");
-        this.router.navigateByUrl('/students')
-      },error:err=>{
-        this.toasterService.error('Unable to edit');
-      }}
-    )
-  }
+    } else {
+      this.studentService.editStudent(this.id,this.form.value).subscribe(
+        {next:value=>{
+          this.toasterService.success("Edited sucessfully");
+          this.router.navigateByUrl('/students')
+        },error:err=>{
+          this.toasterService.error('Unable to edit');
+        }}
+      )
+    }
 
   }
 

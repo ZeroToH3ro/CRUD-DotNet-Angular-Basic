@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controller;
 
-// GET
 [ApiController]
 [Route("api/[controller]")]
 // api/students
