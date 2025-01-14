@@ -1,1 +1,93 @@
 /* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.toast-container {
+  --toast-width: 350px;
+  --toast-padding: 15px;
+}
+
+.toast-container .ngx-toastr {
+  width: var(--toast-width);
+  padding: var(--toast-padding);
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
+
+/* Success toast */
+.toast-success {
+  background-color: #51A351;
+}
+
+/* Error toast */
+.toast-error {
+  background-color: #BD362F;
+}
+
+/* Warning toast */
+.toast-warning {
+  background-color: #F89406;
+}
+
+/* Toast title */
+.toast-title {
+  font-weight: bold;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+/* Toast message */
+.toast-message {
+  font-size: 14px;
+}
+
+/* Progress bar */
+.toast-progress {
+  height: 4px;
+  opacity: 0.8;
+}
+
+/* Position classes */
+.toast-top-right {
+  top: 12px;
+  right: 12px;
+}
+
+.toast-top-left {
+  top: 12px;
+  left: 12px;
+}
+
+.toast-bottom-right {
+  bottom: 12px;
+  right: 12px;
+}
+
+.toast-bottom-left {
+  bottom: 12px;
+  left: 12px;
+}
+
+/* Animation duration */
+.toast-container .ngx-toastr {
+  animation-duration: 300ms;
+}
+
+/* Hover effect */
+.toast-container .ngx-toastr:hover {
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+  opacity: 1;
+}
+
+/* Close button */
+.toast-close-button {
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff;
+  opacity: 0.8;
+}
+
+.toast-close-button:hover {
+  opacity: 1;
+}
