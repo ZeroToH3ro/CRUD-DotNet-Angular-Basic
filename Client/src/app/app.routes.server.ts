@@ -1,6 +1,7 @@
 import { RenderMode, ServerRoute } from '@angular/ssr';
 import { CoursesService } from './services/courses.service';
 import { inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 
 export const serverRoutes: ServerRoute[] = [
   {
@@ -8,12 +9,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Prerender,
     async getPrerenderParams() {
       const dataService = inject(CoursesService);
-      const ids = await dataService.getIds();
-      return ids.map(id => ({ id }));
+      const ids = await firstValueFrom(dataService.getIds());
+      return ids.map((id: string) => ({ id }));
     },
   },
   {
     path: '**',
-    renderMode: RenderMode.Prerender
+    renderMode: RenderMode.Prerender,
   },
 ];

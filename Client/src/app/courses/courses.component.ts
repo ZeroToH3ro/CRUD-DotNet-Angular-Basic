@@ -1,67 +1,75 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { Course } from '../types/course';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CoursesService } from '../services/courses.service';
 import { ToastUtils } from '../utils/toast';
+import { FormsModule } from '@angular/forms';
+import { NumberSequencePipe } from '../pipes/number-sequence.pipe';
 
 @Component({
   selector: 'app-course',
   templateUrl: './courses.component.html',
   standalone: true,
-  imports: [AsyncPipe, CommonModule, RouterLink]
+  imports: [CommonModule, RouterLink, FormsModule, NumberSequencePipe],
 })
 export class CoursesComponent implements OnInit {
   private readonly courseService = inject(CoursesService);
   private readonly toastrUtil = inject(ToastUtils);
 
-  courses$ = this.courseService.getCourses();
-  showStudentModal = false;
-  selectedCourse: Course | null = null;
+  courses: Course[] = [];
+  currentPage: number = 1;
+  pageSize: number = 10;
+  totalPages: number = 0;
+  totalItems: number = 0;
+  loading: boolean = false;
 
   ngOnInit(): void {
-
+    this.loadCourses();
   }
 
-  openAddModal(): void {
-    console.log('Opening add course modal');
+  loadCourses(): void {
+    this.loading = true;
+    this.courseService
+      .getCourses({ pageNumber: this.currentPage, pageSize: this.pageSize })
+      .subscribe({
+        next: (response) => {
+          this.courses = response.items;
+          this.totalPages = response.totalPages;
+          this.totalItems = response.totalCount;
+          this.loading = false;
+        },
+        error: (error) => {
+          this.toastrUtil.showError('Failed to load courses');
+          this.loading = false;
+        },
+      });
   }
 
-  viewCourse(course: Course): void {
-    console.log('Viewing course:', course);
+  onPageChange(page: number): void {
+    this.currentPage = page;
+    this.loadCourses();
   }
 
-  editCourse(id: number, course: Course): void {
-    this.courseService.editCourse(id, course).subscribe({
-      next: () => {
-        this.toastrUtil.showSuccess("Course edit successfully");
-        console.log("Course edit successfully");
-      },
-      error: (error: any) => {
-        console.log("Failed to edit")
-      }
-    })
+  onPageSizeChange(size: string): void {
+    this.pageSize = Number(size);
+    this.currentPage = 1; // Reset to first page when changing page size
+    this.loadCourses();
   }
 
   deleteCourse(id: number): void {
     this.courseService.deleteCourse(id).subscribe({
       next: () => {
-        this.toastrUtil.showSuccess("Course delete successfully");
-        console.log("Course delete successfully");
+        this.toastrUtil.showSuccess('Course delete successfully');
+        console.log('Course delete successfully');
       },
       error: (error: any) => {
-        console.log("Failed to delete", error);
-      }
-    })
+        console.log('Failed to delete', error);
+      },
+    });
   }
 
-  viewStudents(course: Course): void {
-    this.selectedCourse = course;
-    this.showStudentModal = true;
-  }
-
-  closeStudentModal(): void {
-    this.showStudentModal = false;
-    this.selectedCourse = null;
+  getDisplayCount(): number {
+    return Math.min(this.currentPage * this.pageSize, this.totalItems);
   }
 }

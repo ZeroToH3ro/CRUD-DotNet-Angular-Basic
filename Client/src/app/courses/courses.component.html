@@ -22,6 +22,34 @@
     </button>
   </div>
 
+  <!-- Search and Page Size Selector -->
+  <div class="flex justify-between items-center mb-4">
+    <!-- Page Size Selector -->
+    <div class="flex items-center space-x-2">
+      <span class="text-sm text-gray-700">Show</span>
+      <select
+        #sizeSelect
+        [(ngModel)]="pageSize"
+        (change)="onPageSizeChange(sizeSelect.value)"
+        class="border rounded px-2 py-1 text-sm"
+      >
+        <option [value]="10">10</option>
+        <option [value]="25">25</option>
+        <option [value]="50">50</option>
+      </select>
+      <span class="text-sm text-gray-700">entries</span>
+    </div>
+
+    <!-- Search Input -->
+    <div class="flex items-center">
+      <input
+        type="text"
+        placeholder="Search courses..."
+        class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </div>
+  </div>
+
   <!-- Course Table -->
   <div class="overflow-x-auto bg-white rounded-lg shadow">
     <table class="min-w-full table-auto">
@@ -61,10 +89,12 @@
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
         <tr
-          *ngFor="let course of courses$ | async; let i = index"
+          *ngFor="let course of courses; let i = index"
           class="hover:bg-gray-50"
         >
-          <td class="px-6 py-4 whitespace-nowrap">{{ i + 1 }}</td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            {{ (currentPage - 1) * pageSize + i + 1 }}
+          </td>
           <td class="px-6 py-4 whitespace-nowrap">{{ course.name }}</td>
           <td class="px-6 py-4">{{ course.description }}</td>
           <td class="px-6 py-4 whitespace-nowrap">
@@ -76,7 +106,7 @@
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex space-x-2">
               <button
-                (click)="viewCourse(course)"
+                [routerLink]="['/courses/', course.id]"
                 class="text-blue-600 hover:text-blue-900"
               >
                 <svg
@@ -90,21 +120,6 @@
                     fill-rule="evenodd"
                     d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
                     clip-rule="evenodd"
-                  />
-                </svg>
-              </button>
-              <button
-                (click)="editCourse(course.id, course)"
-                class="text-yellow-600 hover:text-yellow-900"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
                   />
                 </svg>
               </button>
@@ -128,12 +143,129 @@
             </div>
           </td>
         </tr>
+
+        <!-- No Data Message -->
+        <tr *ngIf="courses.length === 0">
+          <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+            No courses found
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Loading state (optional) -->
-  <div *ngIf="!(courses$ | async)" class="text-center py-4">
-    Loading courses...
+  <!-- Loading State -->
+  <div
+    *ngIf="loading"
+    class="flex justify-center items-center py-4 space-x-2 text-gray-600"
+  >
+    <svg
+      class="animate-spin h-5 w-5"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      ></circle>
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+      ></path>
+    </svg>
+    <span>Loading courses...</span>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div
+    class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+  >
+    <!-- Pagination Info -->
+    <div class="text-sm text-gray-700">
+      Showing {{ (currentPage - 1) * pageSize + 1 }} to
+      {{ getDisplayCount() }} of {{ totalItems }}
+      entries
+    </div>
+
+    <!-- Pagination Buttons -->
+    <div class="flex items-center space-x-2">
+      <!-- First Page -->
+      <button
+        (click)="onPageChange(1)"
+        [disabled]="currentPage === 1"
+        class="pagination-button"
+        [class.opacity-50]="currentPage === 1"
+      >
+        First
+      </button>
+
+      <!-- Previous -->
+      <button
+        [disabled]="currentPage === 1"
+        (click)="onPageChange(currentPage - 1)"
+        class="pagination-button"
+        [class.opacity-50]="currentPage === 1"
+      >
+        Previous
+      </button>
+
+      <!-- Page Numbers -->
+      <div class="flex space-x-1">
+        <ng-container
+          *ngFor="let page of [].constructor(totalPages) | numberSequence"
+        >
+          <button
+            *ngIf="
+              page === 1 ||
+              page === totalPages ||
+              (page >= currentPage - 1 && page <= currentPage + 1)
+            "
+            (click)="onPageChange(page)"
+            class="pagination-button"
+            [class.bg-blue-600]="currentPage === page"
+            [class.text-white]="currentPage === page"
+          >
+            {{ page }}
+          </button>
+
+          <!-- Ellipsis -->
+          <span
+            *ngIf="
+              (page === 1 && currentPage - 2 > 1) ||
+              (page === totalPages - 1 && currentPage + 2 < totalPages)
+            "
+            class="px-2"
+          >
+            ...
+          </span>
+        </ng-container>
+      </div>
+
+      <!-- Next -->
+      <button
+        [disabled]="currentPage === totalPages"
+        (click)="onPageChange(currentPage + 1)"
+        class="pagination-button"
+        [class.opacity-50]="currentPage === totalPages"
+      >
+        Next
+      </button>
+
+      <!-- Last Page -->
+      <button
+        (click)="onPageChange(totalPages)"
+        [disabled]="currentPage === totalPages"
+        class="pagination-button"
+        [class.opacity-50]="currentPage === totalPages"
+      >
+        Last
+      </button>
+    </div>
   </div>
 </div>

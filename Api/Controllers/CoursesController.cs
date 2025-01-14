@@ -1,6 +1,8 @@
+using System.Text.Json;
 using Api.DTO;
 using Api.Models;
 using Api.Services;
+using Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controller;
@@ -17,9 +19,19 @@ public class CoursesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CourseDto>>> GetCourses()
+    public async Task<ActionResult<PagedList<CourseDto>>> GetCourses([FromQuery] PaginationParams paginationParams)
     {
-        var courses = await _courseService.GetAllCoursesAsync();
+        var courses = await _courseService.GetAllCoursesAsync(paginationParams);
+        
+        Response.Headers.Add("X-Pagination",
+            JsonSerializer.Serialize(new
+            {
+                courses.CurrentPage,
+                courses.TotalPages,
+                courses.PageSize,
+                courses.TotalCount
+            }));
+        
         return Ok(courses);
     }
 
@@ -52,7 +64,7 @@ public class CoursesController : ControllerBase
     {
         if (id != course.Id)
         {
-            return BadRequest();
+            return BadRequest("Course id does not match");
         }
 
         if (!ModelState.IsValid)
@@ -79,7 +91,7 @@ public class CoursesController : ControllerBase
             return BadRequest(message);
         }
         
-        return NoContent();
+        return Ok();
     }
 
     [HttpGet("{id}/students")]
@@ -94,6 +106,14 @@ public class CoursesController : ControllerBase
         
         var students = _courseService.GetCourseStudentsAsync(id);
         return Ok(students);        
+    }
+
+    [HttpGet("GetIds")]
+    public async Task<ActionResult<string[]>> GetIds()
+    {
+       var ids = await _courseService.GetIds();
+
+       return Ok(ids);
     }
     
 }

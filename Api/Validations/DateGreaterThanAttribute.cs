@@ -33,7 +33,7 @@ public class DateGreaterThanAttribute : ValidationAttribute
             return ValidationResult.Success;
         }
         
-        return new ValidationResult($"End must be greater than {_comparisonProperty}");
+        return new ValidationResult($"Backend End must be greater than {_comparisonProperty}");
     }
     
 }

@@ -1,5 +1,7 @@
 using Api.Data;
+using Api.Extensions;
 using Api.Models;
+using Api.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services;
@@ -13,11 +15,11 @@ public class CourseService
         _context = context;
     }
 
-    public async Task<IEnumerable<Course>> GetAllCoursesAsync()
+    public async Task<PagedList<Course>> GetAllCoursesAsync(PaginationParams paginationParams)
     {
         return await _context.Courses
             .Include(c => c.Students)
-            .ToListAsync();
+            .ToPagedListAsync(paginationParams.PageNumber, paginationParams.PageSize);
     }
 
     public async Task<Course?> GetCourseByIdAsync(int id)
@@ -62,7 +64,12 @@ public class CourseService
         
         try
         {
-            _context.Courses.Update(course);
+            courseToUpdate.Name = course.Name;
+            courseToUpdate.Description = course.Description;
+            courseToUpdate.StartDate = course.StartDate;
+            courseToUpdate.EndDate = course.EndDate;
+            courseToUpdate.Students = course.Students;
+            
             await _context.SaveChangesAsync();
             return (true, $"Course {course.Id} has been updated.");
         }
@@ -157,8 +164,16 @@ public class CourseService
         var course = await _context.Courses
             .Include(c => c.Students)
             .FirstOrDefaultAsync(c => c.Id == courseId);
-        
+
         return course?.Students ?? new List<Student>();
     }
 
+    public async Task<string[]> GetIds() 
+    {
+        return await _context.Courses
+            .OrderByDescending(c => c.Id)
+            .Take(100)
+            .Select(c => c.Id.ToString())
+            .ToArrayAsync();
+    }
 }

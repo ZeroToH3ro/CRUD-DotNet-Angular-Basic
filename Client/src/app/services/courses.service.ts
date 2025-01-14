@@ -1,18 +1,24 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, tap, throwError } from 'rxjs';
+import { catchError, Observable, of, tap, throwError } from 'rxjs';
 import { Course } from '../types/course';
+import { PaginationParams, PagedResult } from '../types/pagination';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class CoursesService {
-  apiUrl = "http://localhost:5018/api/courses";
+  apiUrl = 'http://localhost:5018/api/courses';
 
   constructor(private http: HttpClient) {}
 
-  getCourses(): Observable<Course[]> {
-    return this.http.get<Course[]>(this.apiUrl);
+  getCourses(params: PaginationParams): Observable<PagedResult<Course>> {
+    const { pageNumber, pageSize } = params;
+    return this.http.get<PagedResult<Course>>(`${this.apiUrl}`, {
+      params: new HttpParams()
+        .set('pageNumber', pageNumber.toString())
+        .set('pageSize', pageSize.toString()),
+    });
   }
 
   getCourse(id: number): Observable<Course> {
@@ -23,31 +29,43 @@ export class CoursesService {
     return this.http.post<Course>(this.apiUrl, course);
   }
 
-  updateCourse(id: number, course: Partial<Course>): Observable<Course> {
-    return this.http.put<Course>(`${this.apiUrl}/${id}`, course);
-  }
-
   deleteCourse(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => console.log("Couse delete successfully")),
+      tap(() => console.log('Couse delete successfully')),
       catchError((error) => {
         console.log(error);
-        return throwError(() => new Error("Failed edit this course"));
+        return throwError(() => new Error('Failed edit this course'));
       })
     );
   }
 
-  editCourse(id: number, course: Partial<Course>): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, course).pipe(
-      tap(() => console.log("Course updated successfully", course)),
+  editCourse(id: number, course: Partial<Course>): Observable<Course> {
+    console.log(`Attempting to update course with ID: ${id}`);
+    console.log('Update payload:', course);
+
+    return this.http.put<Course>(`${this.apiUrl}/${id}`, course).pipe(
+      tap((response) => {
+        console.log('Update response:', response);
+      }),
       catchError((error) => {
-        console.log(error);
-        return throwError(() => new Error("Failed edit this course"));
+        console.error('Update error details:', {
+          status: error.status,
+          message: error.message,
+          error: error,
+        });
+        return throwError(
+          () => new Error(error.message || 'Failed to edit this course')
+        );
       })
     );
   }
 
-  async getIds(): Promise<string[]> {
-    return ['1', '2', '3', '4', '5'];
+  getIds(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/GetIds`).pipe(
+      catchError((error) => {
+        console.error('Error fetching course IDs:', error);
+        return of([]); // Return empty array as fallback
+      })
+    );
   }
 }

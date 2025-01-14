@@ -1,6 +1,68 @@
-<div class="p-10">
-  <a class="font-semibold bg-blue-600 text-white rounded-xl py-2 px-10 text-2xl"  [routerLink]="'/students'">
-      Students
-  </a>
-  <router-outlet/>
+<div class="flex flex-col min-h-screen">
+  <!-- Header Navigation -->
+  <header class="bg-blue-600 text-white shadow-lg">
+    <nav class="container mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="text-2xl font-bold">EduPlatform</div>
+        <div class="space-x-6">
+          <a
+            class="hover:text-blue-200 transition-colors"
+            [routerLink]="'/students'"
+            >Students</a
+          >
+          <a
+            class="hover:text-blue-200 transition-colors"
+            [routerLink]="'/courses'"
+            >Courses</a
+          >
+          <a
+            class="hover:text-blue-200 transition-colors"
+            [routerLink]="'/login'"
+            >Login</a
+          >
+          <a
+            class="hover:text-blue-200 transition-colors"
+            [routerLink]="'/register'"
+            >Register</a
+          >
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-grow container mx-auto px-6 py-8">
+    <router-outlet />
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white">
+    <div class="container mx-auto px-6 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h4 class="text-lg font-semibold mb-4">About Us</h4>
+          <p class="text-gray-400">
+            EduPlatform is dedicated to providing quality education through
+            innovative online learning solutions.
+          </p>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2 text-gray-400">
+            <li><a href="#" class="hover:text-white">Home</a></li>
+            <li><a href="#" class="hover:text-white">Courses</a></li>
+            <li><a href="#" class="hover:text-white">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Contact Info</h4>
+          <p class="text-gray-400">Email: {{ contactEmail }}</p>
+          <p class="text-gray-400">Phone: {{ phone }}</p>
+        </div>
+      </div>
+      <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+        <p>&copy; 2024 EduPlatform. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
 </div>

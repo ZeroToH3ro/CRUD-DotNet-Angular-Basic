@@ -1,4 +1,4 @@
-import { Student } from "./student";
+import { Student } from './student';
 
 export interface Course {
   id: number;
